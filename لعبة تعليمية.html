@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لعبة بطاقات المسجد الأقصى</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f0f7ff;
+            color: #333;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            text-align: center;
+        }
+        
+        header {
+            background-color: #2d5016;
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+        
+        .game-info {
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            margin-bottom: 25px;
+            background-color: white;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        
+        .score, .matches {
+            font-size: 20px;
+            font-weight: bold;
+            color: #2d5016;
+        }
+        
+        .game-board {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        
+        @media (max-width: 768px) {
+            .game-board {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .game-board {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        
+        .card {
+            height: 150px;
+            perspective: 1000px;
+            cursor: pointer;
+        }
+        
+        .card-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+        }
+        
+        .card.flipped .card-inner {
+            transform: rotateY(180deg);
+        }
+        
+        .card-front, .card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 18px;
+            padding: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        
+        .card-front {
+            background-color: #2d5016;
+            color: white;
+            border: 3px solid #1a3310;
+        }
+        
+        .card-back {
+            background-color: white;
+            color: #333;
+            transform: rotateY(180deg);
+            border: 3px solid #2d5016;
+        }
+        
+        .card-back.image-card {
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+        
+        .card-back.text-card {
+            font-size: 16px;
+            flex-direction: column;
+            justify-content: center;
+            padding: 15px;
+            text-align: center;
+        }
+        
+        .controls {
+            margin-bottom: 20px;
+        }
+        
+        button {
+            background-color: #2d5016;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            font-size: 18px;
+            border-radius: 50px;
+            cursor: pointer;
+            margin: 0 10px;
+            transition: background-color 0.3s;
+        }
+        
+        button:hover {
+            background-color: #3a6720;
+        }
+        
+        .message {
+            font-size: 22px;
+            font-weight: bold;
+            color: #2d5016;
+            margin-top: 20px;
+            margin-bottom: 20px;
+            min-height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .instructions {
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            text-align: right;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        
+        .instructions h3 {
+            color: #2d5016;
+            margin-bottom: 10px;
+        }
+        
+        .instructions ol {
+            padding-right: 20px;
+        }
+        
+        .instructions li {
+            margin-bottom: 8px;
+        }
+        
+        .celebrate {
+            animation: celebrate 0.5s ease-in-out;
+        }
+        
+        @keyframes celebrate {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        
+        .matched {
+            border-color: gold !important;
+            box-shadow: 0 0 15px gold !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>لعبة بطاقات المسجد الأقصى</h1>
+            <p class="subtitle">لعبة تعليمية ممتعة للأطفال</p>
+        </header>
+        
+        <div class="instructions">
+            <h3>🎮 طريقة اللعب:</h3>
+            <ol>
+                <li>انقر على زر "ابدأ اللعب"</li>
+                <li>انقر على البطاقات لقلبها ومشاهدة الصور أو الأسماء</li>
+                <li>حاول أن تجد الصورة التي تطابق اسمها الصحيح</li>
+                <li>عندما تجد تطابقًا صحيحًا، ستزداد نقاطك</li>
+                <li>يجب أن تجد جميع المطابقات الخمسة</li>
+                <li>استمتع وتعلم معالم المسجد الأقصى!</li>
+            </ol>
+        </div>
+        
+        <div class="game-info">
+            <div class="score">النقاط: <span id="score">0</span></div>
+            <div class="matches">المطابقات: <span id="matches">0</span>/5</div>
+        </div>
+        
+        <div class="controls">
+            <button id="startBtn">ابدأ اللعب</button>
+            <button id="restartBtn">أعد</button>
+        </div>
+        
+        <div class="message" id="message">انقر على "ابدأ اللعب" للبدء</div>
+        
+        <div class="game-board" id="gameBoard"></div>
+    </div>
+
+    <script>
+        // روابط الصور
+        const imageSources = {
+            'المسجد الأقصى': 'https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEiXgdIU5UJMSOIutUI6wwtbflMFblTsIZfZv3UsEwWhem5lkGv6tqfE6r-LWk2LUC7ONZz95IpYjOqbx7uy3Q5S1e44Ts57f74Tj3VVxFnnwMN2kfXaPR1gIVvAFOET72eq5K5HbXFG8SE/s1600/0010.jpg',
+            'قبة الصخرة': 'https://www.alkhaleej.ae/sites/default/files/styles/social_large/public/migrated/50e717b5-dc41-431d-a6df-278cd610526c.jpg?itok=kyEE7T4T',
+            'الجامع القبلي': 'https://upload.wikimedia.org/wikipedia/commons/4/4b/Al-Qibli_Chapel.jpg',
+            'البوائك': 'https://d3cehsdnpumv4z.cloudfront.net/images/bawaek/baekanorthwest.jpeg',
+            'حائط البراق': 'https://www.foraqsa.com/library/images/aqsa/landmarks/other/buraq_wall.jpg'
+        };
+
+        // بطاقات اللعبة (5 أزواج = 10 بطاقات)
+        const gameCards = [
+            { id: 1, type: 'image', content: 'المسجد الأقصى' },
+            { id: 2, type: 'text', content: 'المسجد الأقصى', description: 'أولى القبلتين وثالث الحرمين' },
+            { id: 3, type: 'image', content: 'قبة الصخرة' },
+            { id: 4, type: 'text', content: 'قبة الصخرة', description: 'القبة الذهبية الشهيرة' },
+            { id: 5, type: 'image', content: 'الجامع القبلي' },
+            { id: 6, type: 'text', content: 'الجامع القبلي', description: 'المصلى الرئيسي للصلاة' },
+            { id: 7, type: 'image', content: 'البوائك' },
+            { id: 8, type: 'text', content: 'البوائك', description: 'الأقواس الحجرية الجميلة' },
+            { id: 9, type: 'image', content: 'حائط البراق' },
+            { id: 10, type: 'text', content: 'حائط البراق', description: 'حائط المسجد الأقصى الغربي' }
+        ];
+
+        // عناصر DOM
+        const gameBoard = document.getElementById('gameBoard');
+        const scoreElement = document.getElementById('score');
+        const matchesElement = document.getElementById('matches');
+        const startBtn = document.getElementById('startBtn');
+        const restartBtn = document.getElementById('restartBtn');
+        const messageElement = document.getElementById('message');
+
+        // متغيرات اللعبة
+        let score = 0;
+        let matchedPairs = 0;
+        let gameActive = false;
+        let flippedCards = [];
+        let canFlip = true;
+
+        // تهيئة اللعبة
+        function initGame() {
+            gameBoard.innerHTML = '';
+            score = 0;
+            matchedPairs = 0;
+            flippedCards = [];
+            canFlip = false;
+            
+            scoreElement.textContent = score;
+            matchesElement.textContent = matchedPairs;
+            messageElement.textContent = 'انقر على "ابدأ اللعب" للبدء';
+            messageElement.style.color = '#2d5016';
+            
+            // خلط البطاقات
+            const shuffledCards = [...gameCards].sort(() => Math.random() - 0.5);
+            
+            // إنشاء البطاقات
+            shuffledCards.forEach(card => {
+                const cardElement = document.createElement('div');
+                cardElement.className = 'card';
+                cardElement.dataset.id = card.id;
+                cardElement.dataset.content = card.content;
+                
+                const cardInner = document.createElement('div');
+                cardInner.className = 'card-inner';
+                
+                const cardFront = document.createElement('div');
+                cardFront.className = 'card-front';
+                cardFront.textContent = '؟'; // فقط علامة استفهام بدون أي رسومات
+                
+                const cardBack = document.createElement('div');
+                cardBack.className = `card-back ${card.type === 'image' ? 'image-card' : 'text-card'}`;
+                
+                if (card.type === 'image') {
+                    // استخدام الصورة فقط بدون أي رسومات أو نصوص
+                    const imageUrl = imageSources[card.content];
+                    cardBack.style.backgroundImage = `url('${imageUrl}')`;
+                    // لا نضع أي شيء - صورة فقط
+                } else {
+                    cardBack.innerHTML = `<div style="text-align: center;">
+                        <strong style="font-size: 20px; color: #2d5016;">${card.content}</strong><br>
+                        <small style="font-size: 14px; color: #666;">${card.description}</small>
+                    </div>`;
+                }
+                
+                cardInner.appendChild(cardFront);
+                cardInner.appendChild(cardBack);
+                cardElement.appendChild(cardInner);
+                
+                cardElement.addEventListener('click', () => flipCard(cardElement));
+                gameBoard.appendChild(cardElement);
+            });
+            
+            updateGameInfo();
+            gameActive = false;
+            startBtn.textContent = 'ابدأ اللعب';
+            startBtn.disabled = false;
+        }
+
+        // بدء اللعبة
+        function startGame() {
+            if (gameActive) return;
+            
+            gameActive = true;
+            canFlip = true;
+            startBtn.textContent = 'اللعبة تعمل';
+            startBtn.disabled = true;
+            
+            messageElement.textContent = 'ابدأ بمطابقة الصور مع أسمائها!';
+            messageElement.style.color = '#2d5016';
+            
+            // قلب جميع البطاقات لمدة 3 ثواني ثم إخفاؤها
+            const allCards = document.querySelectorAll('.card');
+            allCards.forEach(card => {
+                card.classList.add('flipped');
+            });
+            
+            setTimeout(() => {
+                allCards.forEach(card => {
+                    card.classList.remove('flipped');
+                });
+                messageElement.textContent = 'انقر على بطاقتين لمطابقتهما';
+            }, 3000);
+        }
+
+        // قلب البطاقة
+        function flipCard(card) {
+            if (!gameActive || !canFlip || card.classList.contains('flipped') || card.classList.contains('matched')) {
+                return;
+            }
+            
+            card.classList.add('flipped');
+            flippedCards.push(card);
+            
+            if (flippedCards.length === 2) {
+                canFlip = false;
+                checkForMatch();
+            }
+        }
+
+        // التحقق من المطابقة
+        function checkForMatch() {
+            const card1 = flippedCards[0];
+            const card2 = flippedCards[1];
+            
+            const content1 = card1.dataset.content;
+            const content2 = card2.dataset.content;
+            
+            if (content1 === content2) {
+                // تطابق صحيح
+                setTimeout(() => {
+                    card1.classList.add('matched');
+                    card2.classList.add('matched');
+                    card1.classList.add('celebrate');
+                    card2.classList.add('celebrate');
+                    
+                    score += 20;
+                    matchedPairs++;
+                    updateGameInfo();
+                    
+                    messageElement.textContent = 'ممتاز! تطابق صحيح!';
+                    messageElement.style.color = '#2d5016';
+                    
+                    // إزالة تأثير الاحتفال بعد فترة
+                    setTimeout(() => {
+                        card1.classList.remove('celebrate');
+                        card2.classList.remove('celebrate');
+                    }, 500);
+                    
+                    // التحقق إذا انتهت اللعبة
+                    if (matchedPairs === 5) {
+                        endGame();
+                    }
+                    
+                    flippedCards = [];
+                    canFlip = true;
+                }, 600);
+            } else {
+                // لا يوجد تطابق
+                setTimeout(() => {
+                    card1.classList.remove('flipped');
+                    card2.classList.remove('flipped');
+                    
+                    messageElement.textContent = 'حاول مرة أخرى!';
+                    messageElement.style.color = '#8B0000';
+                    
+                    flippedCards = [];
+                    canFlip = true;
+                }, 1000);
+            }
+        }
+
+        // إنهاء اللعبة
+        function endGame() {
+            gameActive = false;
+            canFlip = false;
+            startBtn.disabled = false;
+            startBtn.textContent = 'ابدأ اللعب';
+            
+            // حساب النقاط النهائية
+            const finalScore = score + (matchedPairs * 10);
+            score = finalScore;
+            updateGameInfo();
+            
+            messageElement.innerHTML = `أحسنت! أكملت جميع المطابقات!<br>نقاطك: ${score}`;
+            messageElement.style.color = '#2d5016';
+            
+            // عرض رسالة تهنئة
+            setTimeout(() => {
+                alert(`أحسنت! لقد أكملت اللعبة بنجاح!\n\nنقاطك النهائية: ${score}`);
+            }, 500);
+        }
+
+        // تحديث معلومات اللعبة
+        function updateGameInfo() {
+            scoreElement.textContent = score;
+            matchesElement.textContent = matchedPairs;
+        }
+
+        // إضافة أحداث الأزرار
+        startBtn.addEventListener('click', startGame);
+        restartBtn.addEventListener('click', initGame);
+
+        // بدء اللعبة عند تحميل الصفحة
+        window.onload = initGame;
+    </script>
+</body>
+</html>
